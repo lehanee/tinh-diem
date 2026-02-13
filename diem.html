@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Tính điểm chơi bài</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    font-family: -apple-system, sans-serif;
+    background: #f2f2f7;
+    margin: 0;
+    padding: 15px;
+}
+.container {
+    max-width: 500px;
+    margin: auto;
+}
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+h1 {
+    text-align: center;
+}
+input, select, button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 6px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+button {
+    background: #e53935;
+    color: white;
+    border: none;
+    font-weight: bold;
+}
+.player-box {
+    background: #fafafa;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+th {
+    background: #e53935;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+    <h1>🧧 Tính điểm</h1>
+
+    <!-- Bước 1 -->
+    <div class="card" id="setup">
+        <h3>Bước 1: Nhập người chơi</h3>
+        <label>Số người chơi</label>
+        <select id="playerCount">
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+
+        <div id="nameInputs"></div>
+
+        <button onclick="startGame()">Bắt đầu chơi</button>
+    </div>
+
+    <!-- Bước 2 -->
+    <div class="card" id="game" style="display:none;">
+        <h3>Nhập kết quả vòng</h3>
+        <div id="roundInputs"></div>
+        <button onclick="addRound()">Tính điểm vòng</button>
+    </div>
+
+    <!-- Bảng điểm -->
+    <div class="card" id="scoreCard" style="display:none;">
+        <h3>Tổng điểm</h3>
+        <table id="scoreTable">
+            <thead>
+                <tr>
+                    <th>Người chơi</th>
+                    <th>Điểm</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+let players = [];
+let scores = [];
+
+function renderNameInputs() {
+    const count = parseInt(document.getElementById("playerCount").value);
+    const container = document.getElementById("nameInputs");
+    container.innerHTML = "";
+
+    for (let i = 0; i < count; i++) {
+        container.innerHTML += `
+            <input id="name${i}" placeholder="Tên người ${i+1}">
+        `;
+    }
+}
+
+document.getElementById("playerCount").onchange = renderNameInputs;
+renderNameInputs();
+
+function startGame() {
+    const count = parseInt(document.getElementById("playerCount").value);
+    players = [];
+    scores = [];
+
+    for (let i = 0; i < count; i++) {
+        let name = document.getElementById("name" + i).value || "P" + (i+1);
+        players.push(name);
+        scores.push(0);
+    }
+
+    document.getElementById("setup").style.display = "none";
+    document.getElementById("game").style.display = "block";
+    document.getElementById("scoreCard").style.display = "block";
+
+    renderRoundInputs();
+    updateScoreTable();
+}
+
+function renderRoundInputs() {
+    const container = document.getElementById("roundInputs");
+    container.innerHTML = "";
+
+    players.forEach((name, i) => {
+        container.innerHTML += `
+            <div class="player-box">
+                <strong>${name}</strong>
+                <input type="number" id="cards${i}" placeholder="Số lá còn lại">
+                <label>
+                    <input type="radio" name="winner" value="${i}">
+                    Người thắng
+                </label>
+            </div>
+        `;
+    });
+}
+
+function addRound() {
+    let winner = document.querySelector('input[name="winner"]:checked');
+    if (!winner) {
+        alert("Chọn người thắng");
+        return;
+    }
+
+    winner = parseInt(winner.value);
+    let total = 0;
+    let cards = [];
+
+    for (let i = 0; i < players.length; i++) {
+        let c = parseInt(document.getElementById("cards" + i).value) || 0;
+        cards.push(c);
+        if (i !== winner) total += c;
+    }
+
+    for (let i = 0; i < players.length; i++) {
+        if (i === winner) scores[i] += total;
+        else scores[i] -= cards[i];
+    }
+
+    renderRoundInputs();
+    updateScoreTable();
+}
+
+function updateScoreTable() {
+    const tbody = document.querySelector("#scoreTable tbody");
+    tbody.innerHTML = "";
+
+    players.forEach((name, i) => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${name}</td>
+                <td>${scores[i]}</td>
+            </tr>
+        `;
+    });
+}
+</script>
+</body>
+</html>
